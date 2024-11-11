@@ -15,6 +15,10 @@ bot = telebot.TeleBot(botToken)
 badWords = readFile("badWords")
 badWords = [i.rstrip() for i in badWords]
 
+# Такие себе слова, не много можно
+sosoWords = readFile("sosoWords")
+sosoWords = [i.rstrip() for i in sosoWords]
+
 # Удалет все подряд повторяющие сообщения
 def toUniqueSymbols(msg):
     newMsg = ""
@@ -45,13 +49,23 @@ def replaceTrans(msg):
         newMsg = newMsg.replace(i[0], i[1])
     return newMsg
 
+# Как много words (массив) в countIn
+def countMatches(countIn, words):
+    num = 0
+    for i in words:
+        num += countIn.count(i)
+    return num
+
 def isBadMsg(msg):
     msg = msg.rstrip()
     msg = msg.lower()
     msg = replaceTrans(msg)
     msg = unSpace(msg)
     msg = toUniqueSymbols(msg)
-    return msg in badWords
+    if msg in badWords: # Слова которые не в кое случае нельзя
+        return True
+    # Если больше 3 не очень слов то нельзя
+    return countMatches(msg, sosoWords) > 2
 
 @bot.message_handler(func=lambda m: True)
 def msgHandle(message):
