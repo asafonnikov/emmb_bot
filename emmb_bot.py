@@ -73,8 +73,11 @@ def msgHandle(message):
     user = message.from_user.id
 
     if msg.startswith("/report"):
-        floiLog.log(f"Пользователь {user} оставил сообщение {msg}")
-        bot.reply_to(message, "Обратная связь отправлена. Спасибо за обратную связь")
+        if message.reply_to_message == None:
+            bot.reply_to(message, "Ошибка! Вы должны отвечать на сообщение для его репорта")
+            return
+        floiLog.log(f"Пользователь {user} пометил сообщение {message.reply_to_message.text} как потенциально недопустимое")
+        bot.reply_to(message, "Сообщение отправлено на дальнейщую проверку. Спасибо за обратную связь")
     
     if len(msg) > 100:
         floiLog.log(f"ДЛИННОЕ {user}: {message.text}")
