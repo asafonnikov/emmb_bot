@@ -79,6 +79,10 @@ def saveLastDelete(user, msg):
         break
     lastDelete.append([user, msg])
 
+@bot.edited_message_handler(func=lambda message: True)
+def editHandle(message):
+    msgHandle(message)
+
 @bot.message_handler(func=lambda m: True)
 def msgHandle(message):
     msg = message.text
