@@ -97,21 +97,21 @@ def msgHandle(message):
         for i in lastDelete:
             if i[0] != user:
                 continue
-            bot.reply_to(message, "Последнее удаленое сообщение от вас помечено как ложное. Спасибо за обратную связь")
+            bot.reply_to(message, "Сообщение отправлено на дальнейщую проверку. Спасибо за обратную связь")
             floiLog.log(f"Пользователь {user} пометил своё последнее удалёное сообщение '{i[1]}' как ложное")
             lastDelete.remove(i)
             return
         
-        bot.reply_to(message, "Ошибка! Ни одно ваше сообщение не было удалено")
+        bot.reply_to(message, "Ошибка! Не чего сообщать")
     
-    if len(msg) > 100:
+    if len(msg) > 250:
         floiLog.log(f"ДЛИННОЕ {user}: {message.text}")
-        bot.reply_to(message, "Сообщение сочтено потенциально не допустимым, тк является слишком длинное")
+        bot.reply_to(message, "Лимит букв (250)! ФЫР!")
         saveLastDelete(user, msg)
     
     elif isBadMsg(msg):
         floiLog.log(f"НЕНОРМАТИВНОЕ {user}: {message.text}")
-        bot.reply_to(message, "Сообщение сочтено потенциально не допустимым, тк содержит ненормативную лексику")
+        bot.reply_to(message, "Не ругайся! ФЫР!")
         saveLastDelete(user, msg)
         
 
