@@ -88,20 +88,20 @@ def msgHandle(message):
     msg = message.text
     user = message.from_user.id
 
-    if msg.startswith("/report"):
-        if message.reply_to_message == None:
-            for i in lastDelete:
-                if i[0] != user:
-                    continue
-                bot.reply_to(message, "Последнее удаленое сообщение от вас помечено как ложное. Спасибо за обратную связь")
-                floiLog.log(f"Пользователь {user} пометил своё последнее удалёное сообщение '{i[1]}' как ложное")
-                return
-            
-            bot.reply_to(message, "Ошибка! Ни одно ваше сообщение не было удалено")
+    if msg == "/report":
+        if message.reply_to_message != None:
+            floiLog.log(f"Пользователь {user} пометил сообщение '{message.reply_to_message.text}' как потенциально недопустимое")
+            bot.reply_to(message, "Сообщение отправлено на дальнейщую проверку. Спасибо за обратную связь")
+            return
+
+        for i in lastDelete:
+            if i[0] != user:
+                continue
+            bot.reply_to(message, "Последнее удаленое сообщение от вас помечено как ложное. Спасибо за обратную связь")
+            floiLog.log(f"Пользователь {user} пометил своё последнее удалёное сообщение '{i[1]}' как ложное")
             return
         
-        floiLog.log(f"Пользователь {user} пометил сообщение '{message.reply_to_message.text}' как потенциально недопустимое")
-        bot.reply_to(message, "Сообщение отправлено на дальнейщую проверку. Спасибо за обратную связь")
+        bot.reply_to(message, "Ошибка! Ни одно ваше сообщение не было удалено")
     
     if len(msg) > 100:
         floiLog.log(f"ДЛИННОЕ {user}: {message.text}")
