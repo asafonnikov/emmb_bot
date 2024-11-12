@@ -99,6 +99,7 @@ def msgHandle(message):
                 continue
             bot.reply_to(message, "Последнее удаленое сообщение от вас помечено как ложное. Спасибо за обратную связь")
             floiLog.log(f"Пользователь {user} пометил своё последнее удалёное сообщение '{i[1]}' как ложное")
+            lastDelete.remove(i)
             return
         
         bot.reply_to(message, "Ошибка! Ни одно ваше сообщение не было удалено")
