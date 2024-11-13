@@ -8,7 +8,7 @@ def readFile(path):
         f.close()
 
 # Сам бот
-botToken = readFile("../botToken")[0]
+botToken = readFile("../botToken")[0].rstrip()
 bot = telebot.TeleBot(botToken)
 
 # Плохие слова
