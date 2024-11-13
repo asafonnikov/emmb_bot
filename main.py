@@ -1,5 +1,7 @@
 import telebot, floiLog
 
+floiLog.init("v14")
+
 def readFile(path):
     f = open(path, 'r')
     try:
