@@ -1,6 +1,6 @@
 import telebot, floiLog
 
-floiLog.init("v14")
+floiLog.init("v15")
 
 def readFile(path):
     f = open(path, 'r')
@@ -61,12 +61,17 @@ def countMatches(countIn, words):
         num += countIn.count(i)
     return num
 
-def isBadMsg(msg):
+# Убирает всю "воду" из сообщения
+def deHydrate(msg):
     msg = msg.rstrip()
     msg = msg.lower()
     msg = replaceTrans(msg)
     msg = unSpace(msg)
     msg = toUniqueSymbols(msg)
+    return msg
+
+def isBadMsg(msg):
+    msg = deHydrate(msg)
     if msg in badWords: # Слова которые не в кое случае нельзя
         return True
     # Если больше 3 не очень слов то нельзя
@@ -81,11 +86,16 @@ def saveLastDelete(user, msg):
         break
     lastDelete.append([user, msg])
 
+# Возвращает user в chat админ?
+def isAdmin(chat, user): # Посмотрим по возможности отправлять видео
+    return not not bot.get_chat_member(chat, user).can_send_videos
+# У меня нет возможности проверить как что будет работы, пока надеюсь что (Эрик прочти лс!)
+
 @bot.edited_message_handler(func=lambda message: True)
 def editHandle(message):
     msgHandle(message)
 
-@bot.message_handler(func=lambda m: True)
+@bot.message_handler(func=lambda message: True)
 def msgHandle(message):
     msg = message.text
     user = message.from_user.id
@@ -106,6 +116,9 @@ def msgHandle(message):
         
         bot.reply_to(message, "Ошибка! Не чего сообщать")
     
+    if isAdmin(message.chat.id, user):
+        return # Админам можно
+
     if len(msg) > 250:
         floiLog.log(f"ДЛИННОЕ {user}: {message.text}")
         bot.reply_to(message, "Лимит букв (250)! ФЫР!")
