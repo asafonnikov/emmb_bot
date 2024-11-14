@@ -21,15 +21,19 @@ def writeFile(path, content):
     f.close()
 
 
+def appendFile(path, content):
+    f = open(path, 'a')
+    content = [i + "\r\n" for i in content]
+    f.writelines(content)
+    f.close()
+
+
 def logSave():
     global logID, logBusy, logs, vars, varsChanged # Пробрасываем в функцию
     while True:
         time.sleep(60) # С переодичностью в 1 минуту
         logBusy = True # Дополняем файл
-        f = open(f"logs/log_{logID}.txt", 'a')
-        for i in logs: # Пишем с разделителем строки
-            f.writelines(f"{i}\r\n")
-        f.close()
+        appendFile(f"logs/log_{logID}.txt", logs)
         logs = [] # И очищаем список что-бы избежать возможную утечку паямти
         logBusy = False
 

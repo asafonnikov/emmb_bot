@@ -1,4 +1,4 @@
-import telebot, floiLib
+import telebot, floiLib, os
 
 floiLib.init("v16")
 
@@ -16,6 +16,10 @@ sosoWords = [i.rstrip() for i in sosoWords]
 
 # Последнии удаления пользователя
 lastDelete = []
+
+# Слово запрощеное на удаление
+requestWord = ""
+requestStatus = False
 
 # Удалет все подряд повторяющие сообщения
 def toUniqueSymbols(msg):
@@ -81,6 +85,7 @@ def saveLastDelete(user, msg):
 
 # Возвращает user в chat админ?
 def isAdmin(chat, user): # Посмотрим по возможности отправлять видео
+    return True # TODO TODO TODO УДАЛИТЬ
     return not not bot.get_chat_member(chat, user).can_send_videos
 # У меня нет возможности проверить как что будет работать, пока надеюсь что будет рабоать без проверки (Эрик прочти лс!)
 
@@ -115,8 +120,12 @@ def editHandle(message):
 
 @bot.message_handler(func=lambda message: True)
 def msgHandle(message):
+    global requestStatus, requestWord
+
     msg = message.text
     user = message.from_user.id
+    chat = message.chat.id
+    tag = message.from_user.username
 
     countMessage()
 
@@ -136,19 +145,63 @@ def msgHandle(message):
             countReport()
             return
         
+
+
         bot.reply_to(message, "Ошибка! Не чего сообщать")
     
-    if isAdmin(message.chat.id, user):
+
+    if msg == "/ban":
+        if not isAdmin(chat, user):
+            bot.reply_to(message, "Ошибка! У вас недостаточно прав")
+            return
+
+        if not message.quote:
+            bot.reply_to(message, "Ошибка! Вы должны цитировать блокируемое слово")
+            return
+        
+        requestWord = message.quote.text
+        requestWord = deHydrate(requestWord)
+        requestStatus = True
+        bot.reply_to(message, f"Слово '{requestWord}' Куда добавить?[B/S/C]")
+        return
+
+
+    if isAdmin(chat, user):
+        if requestStatus:
+            if msg == "B":
+                floiLib.appendFile('badWords', [requestWord])
+                floiLib.log(f"@{tag} Добавляет слово {requestWord} в список недопустимых")
+                badWords.append(requestWord)
+                bot.reply_to(message, "Слово занесено в локальных список недопустимых\r\nИдет синхронизация с репозитроием...")
+                requestStatus = False
+
+            elif msg == "S":
+                floiLib.appendFile('sosoWords', [requestWord])
+                floiLib.log(f"@{tag} Добавляет слово {requestWord} в список нежелательных")
+                sosoWords.append(requestWord)
+                bot.reply_to(message, "Слово занесено в локальных список нежелательных\r\nИдет синхронизация с репозитроием...")
+                requestStatus = False
+
+            elif msg == "C":
+                bot.reply_to(message, "Добавление отменено")
+                requestStatus = 0
+                requestStatus = False
+                return
+            
+            try:
+                os.system
+
+
         return # Админам можно
 
     if len(msg) > 250:
-        floiLib.log(f"ДЛИННОЕ {user}: {message.text}")
+        floiLib.log(f"ДЛИННОЕ {user}: {msg}")
         bot.reply_to(message, "Лимит букв (250)! ФЫР!")
         saveLastDelete(user, msg)
         countDelete()
     
     elif isBadMsg(msg):
-        floiLib.log(f"НЕНОРМАТИВНОЕ {user}: {message.text}")
+        floiLib.log(f"НЕНОРМАТИВНОЕ {user}: {msg}")
         bot.reply_to(message, "Не ругайся! ФЫР!")
         saveLastDelete(user, msg)
         countDelete()
