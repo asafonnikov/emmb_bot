@@ -1,6 +1,6 @@
 import telebot, floiLib, os
 
-floiLib.init("v16")
+floiLib.init("v19")
 
 # Сам бот
 botToken = floiLib.readFile("../botToken")[0].rstrip()
