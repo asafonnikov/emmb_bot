@@ -16,6 +16,7 @@ def readFile(path):
 
 def writeFile(path, content):
     f = open(path, 'w')
+    content = [i + "\r\n" for i in content]
     f.writelines(content)
     f.close()
 

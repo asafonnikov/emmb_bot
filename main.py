@@ -1,6 +1,6 @@
 import telebot, floiLib
 
-floiLib.init("v15")
+floiLib.init("v16")
 
 # Сам бот
 botToken = floiLib.readFile("../botToken")[0].rstrip()
@@ -84,6 +84,31 @@ def isAdmin(chat, user): # Посмотрим по возможности отп
     return not not bot.get_chat_member(chat, user).can_send_videos
 # У меня нет возможности проверить как что будет работать, пока надеюсь что будет рабоать без проверки (Эрик прочти лс!)
 
+# Засчитывает отправленое сообщение
+def countMessage():
+    num = floiLib.getVar(0)
+    num = int(num)
+    num += 1
+    num = str(num)
+    floiLib.setVar(0, num)
+
+# Засчитывает удаление сообщения
+def countDelete():
+    num = floiLib.getVar(1)
+    num = int(num)
+    num += 1
+    num = str(num)
+    floiLib.setVar(1, num)
+
+# Записывает репорт
+def countReport():
+    num = floiLib.getVar(2)
+    num = int(num)
+    num += 1
+    num = str(num)
+    floiLib.setVar(2, num)
+
+
 @bot.edited_message_handler(func=lambda message: True)
 def editHandle(message):
     msgHandle(message)
@@ -93,10 +118,13 @@ def msgHandle(message):
     msg = message.text
     user = message.from_user.id
 
+    countMessage()
+
     if msg == "/report":
         if message.reply_to_message != None:
             floiLib.log(f"Пользователь {user} пометил сообщение '{message.reply_to_message.text}' как потенциально недопустимое")
             bot.reply_to(message, "Сообщение отправлено на дальнейщую проверку. Спасибо за обратную связь")
+            countReport()
             return
 
         for i in lastDelete:
@@ -105,6 +133,7 @@ def msgHandle(message):
             bot.reply_to(message, "Сообщение отправлено на дальнейщую проверку. Спасибо за обратную связь")
             floiLib.log(f"Пользователь {user} пометил своё последнее удалёное сообщение '{i[1]}' как ложное")
             lastDelete.remove(i)
+            countReport()
             return
         
         bot.reply_to(message, "Ошибка! Не чего сообщать")
@@ -116,11 +145,13 @@ def msgHandle(message):
         floiLib.log(f"ДЛИННОЕ {user}: {message.text}")
         bot.reply_to(message, "Лимит букв (250)! ФЫР!")
         saveLastDelete(user, msg)
+        countDelete()
     
     elif isBadMsg(msg):
         floiLib.log(f"НЕНОРМАТИВНОЕ {user}: {message.text}")
         bot.reply_to(message, "Не ругайся! ФЫР!")
         saveLastDelete(user, msg)
+        countDelete()
         
 
 bot.infinity_polling()
