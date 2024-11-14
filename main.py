@@ -89,7 +89,7 @@ def saveLastDelete(user, msg):
 # Возвращает user в chat админ?
 def isAdmin(chat, user): # Посмотрим по возможности отправлять видео
     return not not bot.get_chat_member(chat, user).can_send_videos
-# У меня нет возможности проверить как что будет работы, пока надеюсь что (Эрик прочти лс!)
+# У меня нет возможности проверить как что будет работать, пока надеюсь что будет рабоать без проверки (Эрик прочти лс!)
 
 @bot.edited_message_handler(func=lambda message: True)
 def editHandle(message):
