@@ -21,7 +21,7 @@ def writeFile(path, content):
 
 
 def logSave():
-    global logID, logBusy, logs # Пробрасываем в функцию
+    global logID, logBusy, logs, vars, varsChanged # Пробрасываем в функцию
     while True:
         time.sleep(60) # С переодичностью в 1 минуту
         logBusy = True # Дополняем файл
@@ -64,5 +64,6 @@ def getVar(id):
 
 
 def setVar(id, value):
+    global vars, varsChanged
     vars[id] = value
     varsChanged = True
