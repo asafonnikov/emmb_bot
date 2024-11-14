@@ -6,6 +6,9 @@ floiLib.init("v16")
 botToken = floiLib.readFile("../botToken")[0].rstrip()
 bot = telebot.TeleBot(botToken)
 
+# Комманда для перезапуска
+launchCommand = floiLib.readFile("../launchCommand")[0].rstrip()
+
 # Плохие слова
 badWords = floiLib.readFile("badWords")
 badWords = [i.rstrip() for i in badWords]
@@ -149,6 +152,11 @@ def msgHandle(message):
         bot.reply_to(message, "Ошибка! Не чего сообщать")
     
 
+    if msg == "/ping":
+        bot.reply_to(message, "Pong!")
+        return
+
+
     if msg == "/ban":
         if not isAdmin(chat, user):
             bot.reply_to(message, "Ошибка! У вас недостаточно прав")
@@ -165,21 +173,30 @@ def msgHandle(message):
         return
 
 
+    if msg == "/update":
+        if not isAdmin(chat, user):
+            bot.reply_to(message, "Ошибка! У вас недостаточно прав")
+            return
+        
+        bot.reply_to(message, "Начинаю обновления...\r\nИспользуйте /ping для проверки работоспобности")
+        os.system(f"git pull; {launchCommand}")
+        quit()
+
+
+
     if isAdmin(chat, user):
         if requestStatus:
             if msg == "B":
                 floiLib.appendFile('badWords', [requestWord])
                 floiLib.log(f"@{tag} Добавляет слово {requestWord} в список недопустимых")
                 badWords.append(requestWord)
-                bot.reply_to(message, "Слово занесено в локальных список недопустимых\r\nИдет синхронизация с репозитроием...")
-                requestStatus = False
+                bot.reply_to(message, "Слово занесено в локальных список недопустимых\r\nnСинхронизирую с репозитроием...")
 
             elif msg == "S":
                 floiLib.appendFile('sosoWords', [requestWord])
                 floiLib.log(f"@{tag} Добавляет слово {requestWord} в список нежелательных")
                 sosoWords.append(requestWord)
-                bot.reply_to(message, "Слово занесено в локальных список нежелательных\r\nИдет синхронизация с репозитроием...")
-                requestStatus = False
+                bot.reply_to(message, "Слово занесено в локальных список нежелательных\r\nСинхронизирую с репозитроием...")
 
             elif msg == "C":
                 bot.reply_to(message, "Добавление отменено")
@@ -187,9 +204,8 @@ def msgHandle(message):
                 requestStatus = False
                 return
             
-            os.system( "git add badWords sosoWords")
-            os.system(f"git commit -m \"@{tag} Block '{requestWord}'\"")
-            os.system( "git push")
+            requestStatus = False
+            os.system(f"git add badWords sosoWords; git commit -m \"@{tag} Block '{requestWord}'\"; git push")
 
         return # Админам можно
 
