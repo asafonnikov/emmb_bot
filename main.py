@@ -1,24 +1,17 @@
-import telebot, floiLog
+import telebot, floiLib
 
-floiLog.init("v15")
-
-def readFile(path):
-    f = open(path, 'r')
-    try:
-        return f.readlines()
-    finally:
-        f.close()
+floiLib.init("v15")
 
 # Сам бот
-botToken = readFile("../botToken")[0].rstrip()
+botToken = floiLib.readFile("../botToken")[0].rstrip()
 bot = telebot.TeleBot(botToken)
 
 # Плохие слова
-badWords = readFile("badWords")
+badWords = floiLib.readFile("badWords")
 badWords = [i.rstrip() for i in badWords]
 
 # Такие себе слова, не много можно
-sosoWords = readFile("sosoWords")
+sosoWords = floiLib.readFile("sosoWords")
 sosoWords = [i.rstrip() for i in sosoWords]
 
 # Последнии удаления пользователя
@@ -102,7 +95,7 @@ def msgHandle(message):
 
     if msg == "/report":
         if message.reply_to_message != None:
-            floiLog.log(f"Пользователь {user} пометил сообщение '{message.reply_to_message.text}' как потенциально недопустимое")
+            floiLib.log(f"Пользователь {user} пометил сообщение '{message.reply_to_message.text}' как потенциально недопустимое")
             bot.reply_to(message, "Сообщение отправлено на дальнейщую проверку. Спасибо за обратную связь")
             return
 
@@ -110,7 +103,7 @@ def msgHandle(message):
             if i[0] != user:
                 continue
             bot.reply_to(message, "Сообщение отправлено на дальнейщую проверку. Спасибо за обратную связь")
-            floiLog.log(f"Пользователь {user} пометил своё последнее удалёное сообщение '{i[1]}' как ложное")
+            floiLib.log(f"Пользователь {user} пометил своё последнее удалёное сообщение '{i[1]}' как ложное")
             lastDelete.remove(i)
             return
         
@@ -120,12 +113,12 @@ def msgHandle(message):
         return # Админам можно
 
     if len(msg) > 250:
-        floiLog.log(f"ДЛИННОЕ {user}: {message.text}")
+        floiLib.log(f"ДЛИННОЕ {user}: {message.text}")
         bot.reply_to(message, "Лимит букв (250)! ФЫР!")
         saveLastDelete(user, msg)
     
     elif isBadMsg(msg):
-        floiLog.log(f"НЕНОРМАТИВНОЕ {user}: {message.text}")
+        floiLib.log(f"НЕНОРМАТИВНОЕ {user}: {message.text}")
         bot.reply_to(message, "Не ругайся! ФЫР!")
         saveLastDelete(user, msg)
         
