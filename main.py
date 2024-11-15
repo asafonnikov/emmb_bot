@@ -1,6 +1,6 @@
 import telebot, floiLib, os
 
-floiLib.init("v19")
+floiLib.init("v20")
 
 # Сам бот
 botToken = floiLib.readFile("../botToken")[0].rstrip()
@@ -179,7 +179,9 @@ def msgHandle(message):
             return
         
         bot.reply_to(message, "Начинаю обновления...\r\nИспользуйте /ping для проверки работоспобности")
+        floiLib.log(f"@{tag} Инцилировал обновление сервера")
         os.system(f"git pull; {launchCommand}")
+        floiLib.saveAll()
         quit()
 
 

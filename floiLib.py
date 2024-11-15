@@ -28,20 +28,24 @@ def appendFile(path, content):
     f.close()
 
 
-def logSave():
-    global logID, logBusy, logs, vars, varsChanged # Пробрасываем в функцию
+def saveAll():
+    global logID, logBusy, logs, vars, varsChanged
+    logBusy = True # Дополняем файл
+    appendFile(f"logs/log_{logID}.txt", logs)
+    logs = [] # И очищаем список что-бы избежать возможную утечку паямти
+    logBusy = False
+
+    if not varsChanged:
+        return
+
+    writeFile("vars", vars)
+    varsChanged = False
+
+
+def autoSave():
     while True:
         time.sleep(60) # С переодичностью в 1 минуту
-        logBusy = True # Дополняем файл
-        appendFile(f"logs/log_{logID}.txt", logs)
-        logs = [] # И очищаем список что-бы избежать возможную утечку паямти
-        logBusy = False
-
-        if not varsChanged:
-            continue
-
-        writeFile("vars", vars)
-        varsChanged = False
+        saveAll()
 
 
 
@@ -53,7 +57,7 @@ def init(vers):
     writeFile(f"logs/log_{logID}.txt", [f"ВЕРСИЯ СЕРВЕРА: {vers}", f"{time.time()}", ""])
     vars = readFile("vars")
 
-    threading.Thread(target=logSave, args=()).start()
+    threading.Thread(target=autoSave, args=()).start()
 
 
 def log(msg): # Записать в лог
