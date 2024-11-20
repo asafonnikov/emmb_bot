@@ -7,19 +7,13 @@ vars = []
 varsChanged = False
 
 def readFile(path):
-    f = open(path, 'r')
-    try:
+    with open(path, 'r') as f:
         return f.readlines()
-    finally:
-        f.close()
-
 
 def writeFile(path, content):
-    f = open(path, 'w')
     content = [i + "\r\n" for i in content]
-    f.writelines(content)
-    f.close()
-
+    with open(path, 'w') as f:
+        f.writelines(content)
 
 def appendFile(path, content):
     f = open(path, 'a')
