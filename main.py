@@ -1,21 +1,27 @@
-import telebot, floiLib, os
+import telebot, floiLib, os, logging
 
-floiLib.init("v20")
+os.system("rm log.log") # Очищаем лог
+logger = logging.getLogger(__name__)
+logging.basicConfig(filename="log.log", level=logging.DEBUG)
 
 # Сам бот
 botToken = floiLib.readFile("../botToken")[0].rstrip()
 bot = telebot.TeleBot(botToken)
+logger.debug("Бот загружен")
 
 # Комманда для перезапуска
 launchCommand = floiLib.readFile("../launchCommand")[0].rstrip()
+logger.debug("Комманда загружена")
 
 # Плохие слова
 badWords = floiLib.readFile("badWords")
 badWords = [i.rstrip() for i in badWords]
+logger.info(f"Загружено {len(badWords)} плохих слов")
 
 # Такие себе слова, не много можно
 sosoWords = floiLib.readFile("sosoWords")
 sosoWords = [i.rstrip() for i in sosoWords]
+logger.info(f"Загружено {len(sosoWords)} сомнительных слов")
 
 # Последнии удаления пользователя
 lastDelete = []
@@ -84,11 +90,13 @@ def saveLastDelete(user, msg):
             continue
         lastDelete.remove(i)
         break
+    logging.debug(f"Сохранено сообщение '{msg}' от {user}")
     lastDelete.append([user, msg])
 
 # Возвращает user в chat админ?
 def isAdmin(chat, user): # Посмотрим по возможности отправлять видео
     if user == 1909434944:
+        logging.debug(f"{user} Администратор тк находится в белом списке")
         return True
     return not not bot.get_chat_member(chat, user).can_send_videos
 # У меня нет возможности проверить как что будет работать, пока надеюсь что будет рабоать без проверки (Эрик прочти лс!)
@@ -131,11 +139,13 @@ def msgHandle(message):
     chat = message.chat.id
     tag = message.from_user.username
 
+    logging.debug(f"Обработка сообщение {msg} от @{tag}")
+
     countMessage()
 
     if msg == "/report":
         if message.reply_to_message != None:
-            floiLib.log(f"Пользователь {user} пометил сообщение '{message.reply_to_message.text}' как потенциально недопустимое")
+            logging.warning(f"Пользователь {user} пометил сообщение '{message.reply_to_message.text}' как потенциально недопустимое")
             bot.reply_to(message, "Сообщение отправлено на дальнейщую проверку. Спасибо за обратную связь")
             countReport()
             return
@@ -144,32 +154,35 @@ def msgHandle(message):
             if i[0] != user:
                 continue
             bot.reply_to(message, "Сообщение отправлено на дальнейщую проверку. Спасибо за обратную связь")
-            floiLib.log(f"Пользователь {user} пометил своё последнее удалёное сообщение '{i[1]}' как ложное")
+            logging.warning(f"Пользователь {user} пометил своё последнее удалёное сообщение '{i[1]}' как ложное")
             lastDelete.remove(i)
             countReport()
             return
         
-
-
+        logging.debug(f"Невалидный репорт от @{tag}")
         bot.reply_to(message, "Ошибка! Не чего сообщать")
     
 
     if msg == "/ping":
+        logging.debug(f"@{tag} пинает бота!")
         bot.reply_to(message, "Pong!")
         return
 
 
     if msg == "/ban":
         if not isAdmin(chat, user):
+            logging.debug(f"Не админ @{tag} пытается забанить слово")
             bot.reply_to(message, "Ошибка! У вас недостаточно прав")
             return
 
         if not message.quote:
+            logging.debug(f"@{tag} пытается забанить слово имея неправльный синтаксы в запросе")
             bot.reply_to(message, "Ошибка! Вы должны цитировать блокируемое слово")
             return
         
         requestWord = message.quote.text
         requestWord = deHydrate(requestWord)
+        logging.info(f"@{tag} Собрирается забанить {requestWord}")
         requestStatus = True
         bot.reply_to(message, f"Слово '{requestWord}' Куда добавить?[B/S/C]")
         return
@@ -177,11 +190,12 @@ def msgHandle(message):
 
     if msg == "/update":
         if not isAdmin(chat, user):
+            logging.debug(f"Не админ @{tag} пытается обновить бота")
             bot.reply_to(message, "Ошибка! У вас недостаточно прав")
             return
         
         bot.reply_to(message, "Начинаю обновления...\r\nИспользуйте /ping для проверки работоспобности")
-        floiLib.log(f"@{tag} Инцилировал обновление сервера")
+        logging.warning(f"@{tag} Обновляет сервер")
         os.system(f"git pull; {launchCommand}")
         floiLib.saveAll()
         quit()
@@ -191,18 +205,21 @@ def msgHandle(message):
     if isAdmin(chat, user):
         if requestStatus:
             if msg == "B":
+                logging.warning(f"@{tag} Добавил {requestWord} в список плохих")
                 floiLib.appendFile('badWords', [requestWord])
                 floiLib.log(f"@{tag} Добавляет слово {requestWord} в список недопустимых")
                 badWords.append(requestWord)
                 bot.reply_to(message, "Слово занесено в локальных список недопустимых\r\nnСинхронизирую с репозитроием...")
 
             elif msg == "S":
+                logging.warning(f"@{tag} Добавил {requestWord} в список сомнительных")
                 floiLib.appendFile('sosoWords', [requestWord])
                 floiLib.log(f"@{tag} Добавляет слово {requestWord} в список нежелательных")
                 sosoWords.append(requestWord)
                 bot.reply_to(message, "Слово занесено в локальных список нежелательных\r\nСинхронизирую с репозитроием...")
 
             elif msg == "C":
+                logging.info(f"@{tag} Отменил блокировку {requestWord}")
                 bot.reply_to(message, "Добавление отменено")
                 requestStatus = 0
                 requestStatus = False
@@ -211,20 +228,22 @@ def msgHandle(message):
             requestStatus = False
             os.system(f"git add badWords sosoWords; git commit -m \"@{tag} Block '{requestWord}'\"; git push")
 
+        logging.debug(f"@{tag} Администратор, пропуск проверок")
         return # Админам можно
 
     if len(msg) > 250:
-        floiLib.log(f"ДЛИННОЕ {user}: {msg}")
+        logging.info(f"Сообщение '{msg}' от @{tag} было удалено тк превышает лимит букв")
         bot.reply_to(message, "Лимит букв (250)! ФЫР!")
         saveLastDelete(user, msg)
         countDelete()
     
     elif isBadMsg(msg):
-        floiLib.log(f"НЕНОРМАТИВНОЕ {user}: {msg}")
+        logging.info(f"Сообщение '{msg}' от @{tag} было удалено тк содержит заблокированые слова")
         bot.reply_to(message, "Не ругайся! ФЫР!")
         saveLastDelete(user, msg)
         countDelete()
         
 
 bot.infinity_polling()
+logging.info(f"Бот инцилизирован")
 
