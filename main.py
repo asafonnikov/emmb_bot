@@ -1,8 +1,7 @@
 import telebot, floiLib, os, logging
 
-os.system("rm log.log") # Очищаем лог
 logger = logging.getLogger(__name__)
-logging.basicConfig(filename="log.log", level=logging.DEBUG)
+logging.basicConfig(filename="log.log", level=logging.IFNO)
 
 # Сам бот
 botToken = floiLib.readFile("../botToken")[0].rstrip()
